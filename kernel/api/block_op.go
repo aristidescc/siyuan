@@ -598,10 +598,10 @@ func updateBlock(c *gin.Context) {
 		})
 	} else {
 		if "NodeListItem" == block.Type && ast.NodeList == tree.Root.FirstChild.Type {
-			// 使用 API `api/block/updateBlock` 更新列表项时渲染错误 https://github.com/siyuan-note/siyuan/issues/4658
-			tree.Root.AppendChild(tree.Root.FirstChild.FirstChild) // 将列表下的第一个列表项移到文档结尾，移动以后根下面直接挂列表项，渲染器可以正常工作
-			tree.Root.FirstChild.Unlink()                          // 删除列表
-			tree.Root.FirstChild.Unlink()                          // 继续删除列表 IAL
+			// Rendering error when updating list items using API `api/block/updateBlock` https://github.com/siyuan-note/siyuan/issues/4658
+			tree.Root.AppendChild(tree.Root.FirstChild.FirstChild) // Move the first list item under the list to the end of the document, after moving it items are attached directly under the root, the renderer can work normally
+			tree.Root.FirstChild.Unlink()                          // Delete list
+			tree.Root.FirstChild.Unlink()                          // Continue deleting list IAL
 		}
 		tree.Root.FirstChild.SetIALAttr("id", id)
 
@@ -715,10 +715,10 @@ func batchUpdateBlock(c *gin.Context) {
 			ops = append(ops, &model.Operation{Action: "appendInsert", Data: data, ParentID: id})
 		} else {
 			if "NodeListItem" == block.Type && ast.NodeList == tree.Root.FirstChild.Type {
-				// 使用 API `api/block/updateBlock` 更新列表项时渲染错误 https://github.com/siyuan-note/siyuan/issues/4658
-				tree.Root.AppendChild(tree.Root.FirstChild.FirstChild) // 将列表下的第一个列表项移到文档结尾，移动以后根下面直接挂列表项，渲染器可以正常工作
-				tree.Root.FirstChild.Unlink()                          // 删除列表
-				tree.Root.FirstChild.Unlink()                          // 继续删除列表 IAL
+				// Rendering error when updating list items using API `api/block/updateBlock` https://github.com/siyuan-note/siyuan/issues/4658
+				tree.Root.AppendChild(tree.Root.FirstChild.FirstChild) // Move the first list item under the list to the end of the document, after moving it items are attached directly under the root, the renderer can work normally
+				tree.Root.FirstChild.Unlink()                          // Delete list
+				tree.Root.FirstChild.Unlink()                          // Continue deleting list IAL
 			}
 			tree.Root.FirstChild.SetIALAttr("id", id)
 
@@ -778,11 +778,11 @@ func broadcastTransactions(transactions []*model.Transaction) {
 }
 
 func dataBlockDOM(data string, luteEngine *lute.Lute) (ret string, err error) {
-	luteEngine.SetHTMLTag2TextMark(true) // API `/api/block/**` 无法使用 `<u>foo</u>` 与 `<kbd>bar</kbd>` 插入/更新行内元素 https://github.com/siyuan-note/siyuan/issues/6039
+	luteEngine.SetHTMLTag2TextMark(true) // API `/api/block/**` cannot use `<u>foo</u>` and `<kbd>bar</kbd>` to insert/update inline elements https://github.com/siyuan-note/siyuan/issues/6039
 
 	ret, tree := luteEngine.Md2BlockDOMTree(data, true)
 	if "" == ret {
-		// 使用 API 插入空字符串出现错误 https://github.com/siyuan-note/siyuan/issues/3931
+		// Error when using API to insert empty string https://github.com/siyuan-note/siyuan/issues/3931
 		blankParagraph := treenode.NewParagraph("")
 		ret = luteEngine.RenderNodeBlockDOM(blankParagraph)
 	}

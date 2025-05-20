@@ -286,7 +286,7 @@ func setWorkspaceDir(c *gin.Context) {
 	}
 
 	if gulu.OS.IsWindows() {
-		// 改进判断工作空间路径实现 https://github.com/siyuan-note/siyuan/issues/7569
+		// Improve workspace path validation implementation https://github.com/siyuan-note/siyuan/issues/7569
 		installDirLower := strings.ToLower(filepath.Dir(util.WorkingDir))
 		pathLower := strings.ToLower(path)
 		if strings.HasPrefix(pathLower, installDirLower) && (util.IsSubPath(installDirLower, pathLower) || filepath.Clean(installDirLower) == filepath.Clean(pathLower)) {
@@ -297,7 +297,7 @@ func setWorkspaceDir(c *gin.Context) {
 		}
 	}
 
-	// 检查路径是否在已有的工作空间路径中
+	// Check if the path exists in existing workspace paths
 	pathIsWorkspace := util.IsWorkspaceDir(path)
 	if !pathIsWorkspace {
 		for p := filepath.Dir(path); !util.IsRootPath(p); p = filepath.Dir(p) {
@@ -320,7 +320,7 @@ func setWorkspaceDir(c *gin.Context) {
 	workspacePaths = append(workspacePaths, path)
 	workspacePaths = gulu.Str.RemoveDuplicatedElem(workspacePaths)
 	workspacePaths = gulu.Str.RemoveElem(workspacePaths, path)
-	workspacePaths = append(workspacePaths, path) // 切换的工作空间固定放在最后一个
+	workspacePaths = append(workspacePaths, path) // Always place the switched workspace at the end
 
 	if err = util.WriteWorkspacePaths(workspacePaths); err != nil {
 		ret.Code = -1

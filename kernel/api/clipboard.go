@@ -27,7 +27,7 @@ func readFilePaths(c *gin.Context) {
 	defer c.JSON(200, ret)
 
 	var paths []string
-	if !gulu.OS.IsLinux() { // Linux 端不再支持 `粘贴为纯文本` 时处理文件绝对路径 https://github.com/siyuan-note/siyuan/issues/5825
+	if !gulu.OS.IsLinux() { // Linux no longer supports handling absolute file paths when "Paste as Plain Text" https://github.com/siyuan-note/siyuan/issues/5825
 		paths, _ = clipboard.ReadFilePaths()
 	}
 	if 1 > len(paths) {

@@ -427,14 +427,14 @@ func getRefText(c *gin.Context) {
 
 	refText := model.GetBlockRefText(id)
 	if "" == refText {
-		// 空块返回 id https://github.com/siyuan-note/siyuan/issues/10259
+		// Return ID for empty blocks https://github.com/siyuan-note/siyuan/issues/10259
 		refText = id
 		ret.Data = refText
 		return
 	}
 
 	if strings.Count(refText, "\\") == len(refText) {
-		// 全部都是 \ 的话使用实体 https://github.com/siyuan-note/siyuan/issues/11473
+		// Use entities if all characters are \ https://github.com/siyuan-note/siyuan/issues/11473
 		refText = strings.ReplaceAll(refText, "\\", "&#92;")
 		ret.Data = refText
 		return
@@ -503,7 +503,7 @@ func getBlockDefIDsByRefText(c *gin.Context) {
 	for _, excludeID := range excludeIDsArg {
 		excludeIDs = append(excludeIDs, excludeID.(string))
 	}
-	excludeIDs = nil // 不限制虚拟引用搜索自己 https://ld246.com/article/1633243424177
+	excludeIDs = nil // Do not restrict virtual references from searching themselves https://ld246.com/article/1633243424177
 	ids := model.GetBlockDefIDsByRefText(anchor, excludeIDs)
 	var retRefDefs []model.RefDefs
 	for _, id := range ids {
@@ -589,7 +589,7 @@ func getBlockInfo(c *gin.Context) {
 
 	id := arg["id"].(string)
 
-	// 仅在此处使用带重建索引的加载函数，其他地方不要使用
+	// Only use the load function with index rebuilding here, do not use it elsewhere
 	tree, err := model.LoadTreeByBlockIDWithReindex(id)
 	if errors.Is(err, model.ErrIndexing) {
 		ret.Code = 3
@@ -667,8 +667,8 @@ func getBlockKramdown(c *gin.Context) {
 		return
 	}
 
-	// md：Markdown 标记符模式，使用标记符导出
-	// textmark：文本标记模式，使用 span 标签导出
+	// md: Markdown markup mode, exports using markup symbols
+	// textmark: Text markup mode, exports using span tags
 	// https://github.com/siyuan-note/siyuan/issues/13183
 	mode := "md"
 	if modeArg := arg["mode"]; nil != modeArg {
