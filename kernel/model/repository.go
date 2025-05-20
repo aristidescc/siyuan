@@ -61,7 +61,7 @@ import (
 	"github.com/studio-b12/gowebdav"
 )
 
-// AutoPurgeRepoJob 自动清理数据仓库 https://github.com/siyuan-note/siyuan/issues/13091
+// AutoPurgeRepoJob Automatically purge data repository https://github.com/siyuan-note/siyuan/issues/13091
 func AutoPurgeRepoJob() {
 	task.AppendTaskWithTimeout(task.RepoAutoPurge, 12*time.Hour, autoPurgeRepo, true)
 }
@@ -95,8 +95,8 @@ func autoPurgeRepo(cron bool) {
 
 	now := time.Now()
 
-	dateGroupedIndexes := map[string][]*entity.Index{} // 按照日期分组
-	// 收集指定日期内需要保留的索引
+	dateGroupedIndexes := map[string][]*entity.Index{} // Group by date
+	// Collect indexes to retain within specified dates
 	var date string
 	page := 1
 	for {

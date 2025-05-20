@@ -39,7 +39,7 @@ import (
 var luteEngine = util.NewLute()
 
 func init() {
-	luteEngine.RenderOptions.KramdownBlockIAL = false // 数据库 markdown 字段为标准 md，但是要保留 span block ial
+	luteEngine.RenderOptions.KramdownBlockIAL = false // Database markdown field is standard md, but needs to keep span block ial
 }
 
 const (
@@ -120,7 +120,7 @@ func insertBlocks0(tx *sql.Tx, bulk []*Block, context map[string]interface{}) (e
 	}
 	hashBuf.WriteString("blocks")
 	evtHash := fmt.Sprintf("%x", sha256.Sum256(hashBuf.Bytes()))[:7]
-	// 使用下面的 EvtSQLInsertBlocksFTS 就可以了
+	// Using the following EvtSQLInsertBlocksFTS is sufficient
 	//eventbus.Publish(eventbus.EvtSQLInsertBlocks, context, current, total, len(bulk), evtHash)
 
 	stmt = fmt.Sprintf(BlocksFTSInsert, strings.Join(valueStrings, ","))
@@ -475,7 +475,7 @@ func insertTree0(tx *sql.Tx, tree *parse.Tree, context map[string]interface{},
 	}
 
 	if 0 < len(spans) {
-		// 移除文档标签，否则会重复添加 https://github.com/siyuan-note/siyuan/issues/3723
+		// Remove document tags to avoid duplicate additions https://github.com/siyuan-note/siyuan/issues/3723
 		if err = deleteSpansByRootID(tx, tree.Root.ID); err != nil {
 			return
 		}

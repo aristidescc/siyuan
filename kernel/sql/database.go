@@ -85,14 +85,14 @@ func InitDatabase(forceRebuild bool) (err error) {
 	treenode.InitBlockTree(forceRebuild)
 
 	if !forceRebuild {
-		// 检查数据库结构版本，如果版本不一致的话说明改过表结构，需要重建
+		// Check database schema version, if versions don't match it means table structure has changed and needs rebuilding
 		if util.DatabaseVer == getDatabaseVer() {
 			return
 		}
 		logging.LogInfof("the database structure is changed, rebuilding database...")
 	}
 
-	// 不存在库或者版本不一致都会走到这里
+	// Will reach here if database doesn't exist or versions don't match
 
 	closeDatabase()
 	if gulu.File.IsExist(util.DBPath) {
@@ -442,7 +442,7 @@ func isRepeatedRef(refs []*Ref, ref *Ref) bool {
 }
 
 func buildRef(tree *parse.Tree, refNode *ast.Node) *Ref {
-	// 多个类型可能会导致渲染的 Markdown 不正确，所以这里只保留 block-ref 类型
+	// Multiple types may cause incorrect Markdown rendering, so only keep block-ref type here
 	tmpTyp := refNode.TextMarkType
 	refNode.TextMarkType = "block-ref"
 	markdown := treenode.ExportNodeStdMd(refNode, luteEngine)
@@ -493,7 +493,7 @@ func buildEmbedRef(tree *parse.Tree, embedNode *ast.Node) *Ref {
 		RootID:           tree.ID,
 		Box:              tree.Box,
 		Path:             tree.Path,
-		Content:          "", // 通过嵌入块构建引用时定义块可能还没有入库，所以这里统一不填充内容
+		Content:          "", // When building references through embedded blocks, definition blocks might not be in the database yet, so leave content empty here
 		Markdown:         "",
 		Type:             treenode.TypeAbbr(embedNode.Type.String()),
 	}
@@ -513,7 +513,7 @@ func fromTree(node *ast.Node, tree *parse.Tree) (blocks []*Block, spans []*Span,
 			return ast.WalkContinue
 		}
 
-		// 构造行级元素
+		// Construct inline elements
 		spanBlocks, spanSpans, spanAssets, spanAttrs, walkStatus := buildSpanFromNode(n, tree, rootID, boxID, p)
 		if 0 < len(spanBlocks) {
 			blocks = append(blocks, spanBlocks...)
@@ -528,7 +528,7 @@ func fromTree(node *ast.Node, tree *parse.Tree) (blocks []*Block, spans []*Span,
 			attributes = append(attributes, spanAttrs...)
 		}
 
-		// 构造属性
+		// Construct attributes
 		attrs := buildAttributeFromNode(n, rootID, boxID, p)
 		if 0 < len(attrs) {
 			attributes = append(attributes, attrs...)
@@ -537,7 +537,7 @@ func fromTree(node *ast.Node, tree *parse.Tree) (blocks []*Block, spans []*Span,
 			return walkStatus
 		}
 
-		// 构造块级元素
+		// Construct block-level elements
 		if "" == n.ID || !n.IsBlock() {
 			return ast.WalkContinue
 		}
@@ -732,7 +732,7 @@ func buildSpanFromNode(n *ast.Node, tree *parse.Tree, rootID, boxID, p string) (
 			return
 		}
 		if 1 > len(nodes) &&
-			ast.NodeHTMLBlock != n.Type { // HTML 块若内容为空时无法在数据库中查询到 https://github.com/siyuan-note/siyuan/issues/4691
+			ast.NodeHTMLBlock != n.Type { // HTML blocks cannot be queried in the database when content is empty https://github.com/siyuan-note/siyuan/issues/4691
 			walkStatus = ast.WalkContinue
 			return
 		}
@@ -744,7 +744,7 @@ func buildSpanFromNode(n *ast.Node, tree *parse.Tree, rootID, boxID, p string) (
 		}
 
 		if ast.NodeInlineHTML == n.Type {
-			// 没有行级 HTML，只有块级 HTML，这里转换为块
+			// No inline HTML, only block-level HTML, convert to block here
 			n.ID = ast.NewNodeID()
 			n.SetIALAttr("id", n.ID)
 			n.SetIALAttr("updated", n.ID[:14])
@@ -849,7 +849,7 @@ func buildBlockFromNode(n *ast.Node, tree *parse.Tree) (block *Block, attributes
 		fcontent = NodeStaticContent(fc, nil, true, false, true)
 
 		parentID = n.Parent.ID
-		if h := heading(n); nil != h { // 如果在标题块下方，则将标题块作为父节点
+		if h := heading(n); nil != h { // If below a heading block, use the heading block as parent node
 			parentID = h.ID
 		}
 		length = utf8.RuneCountInString(fcontent)
@@ -1439,7 +1439,7 @@ func execStmtTx(tx *sql.Tx, stmt string, args ...interface{}) (err error) {
 
 func nSort(n *ast.Node) int {
 	switch n.Type {
-	// 以下为块级元素
+	// Block-level elements below
 	case ast.NodeHeading:
 		return 5
 	case ast.NodeParagraph:
@@ -1506,7 +1506,7 @@ func closeDatabase() (err error) {
 
 	err = db.Close()
 	debug.FreeOSMemory()
-	runtime.GC() // 没有这句的话文件句柄不会释放，后面就无法删除文件
+	runtime.GC() // Without this line, file handles won't be released and files cannot be deleted later
 	return
 }
 

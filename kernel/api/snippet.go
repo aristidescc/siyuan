@@ -38,7 +38,7 @@ func getSnippet(c *gin.Context) {
 	}
 
 	typ := arg["type"].(string)                 // js/css/all
-	enabledArg := int(arg["enabled"].(float64)) // 0：禁用，1：启用，2：全部
+	enabledArg := int(arg["enabled"].(float64)) // 0: disabled, 1: enabled, 2: all
 	enabled := true
 	if 0 == enabledArg {
 		enabled = false

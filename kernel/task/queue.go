@@ -38,7 +38,7 @@ type Task struct {
 	Handler reflect.Value
 	Args    []interface{}
 	Created time.Time
-	Async   bool // 为 true 说明是异步任务，不会阻塞任务队列，满足 Delay 条件后立即执行
+	Async   bool // When true, indicates an asynchronous task that won't block the task queue and executes immediately after Delay conditions are met
 	Delay   time.Duration
 	Timeout time.Duration
 }
@@ -118,33 +118,33 @@ func getCurrentTasks() (ret []*Task) {
 }
 
 const (
-	RepoCheckout                    = "task.repo.checkout"                 // 从快照中检出
-	RepoAutoPurge                   = "task.repo.autoPurge"                // 自动清理数据仓库
-	DatabaseIndexFull               = "task.database.index.full"           // 重建索引
-	DatabaseIndex                   = "task.database.index"                // 数据库索引
-	DatabaseIndexCommit             = "task.database.index.commit"         // 数据库索引提交
-	DatabaseIndexRef                = "task.database.index.ref"            // 数据库索引引用
-	DatabaseIndexFix                = "task.database.index.fix"            // 数据库索引订正
-	OCRImage                        = "task.ocr.image"                     // 图片 OCR 提取文本
-	HistoryGenerateFile             = "task.history.generateFile"          // 生成文件历史
-	HistoryDatabaseIndexFull        = "task.history.database.index.full"   // 历史数据库重建索引
-	HistoryDatabaseIndexCommit      = "task.history.database.index.commit" // 历史数据库索引提交
-	DatabaseIndexEmbedBlock         = "task.database.index.embedBlock"     // 数据库索引嵌入块
-	ReloadUI                        = "task.reload.ui"                     // 重载 UI
-	AssetContentDatabaseIndexFull   = "task.asset.database.index.full"     // 资源文件数据库重建索引
-	AssetContentDatabaseIndexCommit = "task.asset.database.index.commit"   // 资源文件数据库索引提交
-	CacheVirtualBlockRef            = "task.cache.virtualBlockRef"         // 缓存虚拟块引用
-	ReloadAttributeView             = "task.reload.attributeView"          // 重新加载属性视图
-	ReloadProtyle                   = "task.reload.protyle"                // 重新加载编辑器
-	ReloadTag                       = "task.reload.tag"                    // 重新加载标签面板
-	ReloadFiletree                  = "task.reload.filetree"               // 重新加载文档树面板
-	SetRefDynamicText               = "task.ref.setDynamicText"            // 设置引用的动态锚文本
-	SetDefRefCount                  = "task.def.setRefCount"               // 设置定义的引用计数
-	UpdateIDs                       = "task.update.ids"                    // 更新 ID
-	PushMsg                         = "task.push.msg"                      // 推送消息
+	RepoCheckout                    = "task.repo.checkout"                 // Checkout from snapshot
+	RepoAutoPurge                   = "task.repo.autoPurge"                // Auto clean data repository
+	DatabaseIndexFull               = "task.database.index.full"           // Rebuild index
+	DatabaseIndex                   = "task.database.index"                // Database index
+	DatabaseIndexCommit             = "task.database.index.commit"         // Database index commit
+	DatabaseIndexRef                = "task.database.index.ref"            // Database index reference
+	DatabaseIndexFix                = "task.database.index.fix"            // Database index correction
+	OCRImage                        = "task.ocr.image"                     // Extract text from image using OCR
+	HistoryGenerateFile             = "task.history.generateFile"          // Generate file history
+	HistoryDatabaseIndexFull        = "task.history.database.index.full"   // Rebuild history database index
+	HistoryDatabaseIndexCommit      = "task.history.database.index.commit" // History database index commit
+	DatabaseIndexEmbedBlock         = "task.database.index.embedBlock"     // Database index embedded block
+	ReloadUI                        = "task.reload.ui"                     // Reload UI
+	AssetContentDatabaseIndexFull   = "task.asset.database.index.full"     // Rebuild asset content database index
+	AssetContentDatabaseIndexCommit = "task.asset.database.index.commit"   // Asset file database index commit
+	CacheVirtualBlockRef            = "task.cache.virtualBlockRef"         // Cache virtual block reference
+	ReloadAttributeView             = "task.reload.attributeView"          // Reload attribute view
+	ReloadProtyle                   = "task.reload.protyle"                // Reload editor
+	ReloadTag                       = "task.reload.tag"                    // Reload tag panel
+	ReloadFiletree                  = "task.reload.filetree"               // Reload document tree panel
+	SetRefDynamicText               = "task.ref.setDynamicText"            // Set reference dynamic anchor text
+	SetDefRefCount                  = "task.def.setRefCount"               // Set definition reference count
+	UpdateIDs                       = "task.update.ids"                    // Update IDs
+	PushMsg                         = "task.push.msg"                      // Push message
 )
 
-// uniqueActions 描述了唯一的任务，即队列中只能存在一个在执行的任务。
+// uniqueActions describes tasks that must be unique, meaning only one task can exist in the queue at a time.
 var uniqueActions = []string{
 	RepoCheckout,
 	RepoAutoPurge,

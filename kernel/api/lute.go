@@ -90,7 +90,7 @@ func html2BlockDOM(c *gin.Context) {
 		n.Unlink()
 	}
 
-	// 表格只包含一个单元格时，将其转换为段落
+	// Convert to paragraph when table contains only one cell
 	// Copy one cell from Excel/HTML table and paste it using the cell's content https://github.com/siyuan-note/siyuan/issues/9614
 	unlinks = nil
 	if nil != tree.Root.FirstChild && ast.NodeTable == tree.Root.FirstChild.Type && (nil == tree.Root.FirstChild.Next ||
@@ -117,7 +117,7 @@ func html2BlockDOM(c *gin.Context) {
 	}
 
 	if util.ContainerStd == model.Conf.System.Container {
-		// 处理本地资源文件复制
+		// Handle local resource file copying
 		ast.Walk(tree.Root, func(n *ast.Node, entering bool) ast.WalkStatus {
 			if !entering || ast.NodeLinkDest != n.Type {
 				return ast.WalkContinue
@@ -165,7 +165,7 @@ func html2BlockDOM(c *gin.Context) {
 		})
 	}
 
-	parse.TextMarks2Inlines(tree) // 先将 TextMark 转换为 Inlines https://github.com/siyuan-note/siyuan/issues/13056
+	parse.TextMarks2Inlines(tree) // First convert TextMark to Inlines https://github.com/siyuan-note/siyuan/issues/13056
 	parse.NestedInlines2FlattedSpansHybrid(tree, false)
 
 	renderer := render.NewProtyleRenderer(tree, luteEngine.RenderOptions)

@@ -282,7 +282,7 @@ func IndexTreeQueue(tree *parse.Tree) {
 
 	newOp := &dbQueueOperation{indexTree: tree, inQueueTime: time.Now(), action: "index"}
 	for i, op := range operationQueue {
-		if "index" == op.action && op.indexTree.ID == tree.ID { // 相同树则覆盖
+		if "index" == op.action && op.indexTree.ID == tree.ID { // Overwrite if same tree
 			operationQueue[i] = newOp
 			return
 		}
@@ -296,7 +296,7 @@ func UpsertTreeQueue(tree *parse.Tree) {
 
 	newOp := &dbQueueOperation{upsertTree: tree, inQueueTime: time.Now(), action: "upsert"}
 	for i, op := range operationQueue {
-		if "upsert" == op.action && op.upsertTree.ID == tree.ID { // 相同树则覆盖
+		if "upsert" == op.action && op.upsertTree.ID == tree.ID { // Overwrite if same tree
 			operationQueue[i] = newOp
 			return
 		}
@@ -314,7 +314,7 @@ func RenameTreeQueue(tree *parse.Tree) {
 		action:      "rename",
 	}
 	for i, op := range operationQueue {
-		if "rename" == op.action && op.renameTree.ID == tree.ID { // 相同树则覆盖
+		if "rename" == op.action && op.renameTree.ID == tree.ID { // Overwrite if same tree
 			operationQueue[i] = newOp
 			return
 		}

@@ -46,7 +46,7 @@ func StartCron() {
 	go every(24*time.Hour, model.AutoPurgeRepoJob)
 	go every(30*time.Minute, model.AutoCheckMicrosoftDefenderJob)
 
-	// TODO: 移除旧方案 https://github.com/siyuan-note/siyuan/issues/14414 实现新的刷新机制
+	// TODO: Remove old solution and implement new refresh mechanism https://github.com/siyuan-note/siyuan/issues/14414
 	//go every(3*time.Second, model.WatchLocalShorthands)
 }
 

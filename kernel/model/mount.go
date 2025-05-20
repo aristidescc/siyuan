@@ -184,7 +184,7 @@ func Mount(boxID string) (alreadyMount bool, err error) {
 	localPath := filepath.Join(util.DataDir, boxID)
 	var reMountGuide bool
 	if isUserGuide {
-		// 重新挂载帮助文档
+		// Remount help documentation
 
 		guideBox := Conf.Box(boxID)
 		if nil != guideBox {
@@ -243,7 +243,7 @@ func Mount(boxID string) (alreadyMount bool, err error) {
 	box.SaveConf(boxConf)
 
 	box.Index()
-	// 缓存根一级的文档树展开
+	// Cache root level document tree expansion
 	ListDocTree(box.ID, "/", util.SortModeUnassigned, false, false, Conf.FileTree.MaxListCount)
 	util.ClearPushProgress(100)
 

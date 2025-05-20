@@ -45,11 +45,11 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		Sorts:            view.Table.Sorts,
 	}
 
-	// 组装列
+	// Assemble columns
 	for _, col := range view.Table.Columns {
 		key, getErr := attrView.GetKey(col.ID)
 		if nil != getErr {
-			// 找不到字段则在视图中删除
+			// Remove from view if field is not found
 
 			switch view.LayoutType {
 			case av.LayoutTypeTable:
@@ -86,7 +86,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		})
 	}
 
-	// 生成行
+	// Generate rows
 	rows := map[string][]*av.KeyValues{}
 	for _, keyValues := range attrView.KeyValues {
 		for _, val := range keyValues.Values {
@@ -100,7 +100,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		}
 	}
 
-	// 过滤掉不存在的行
+	// Filter out non-existent rows
 	var notFound []string
 	var toCheckBlockIDs []string
 	for blockID, keyValues := range rows {
@@ -131,7 +131,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		delete(rows, blockID)
 	}
 
-	// 生成行单元格
+	// Generate row cells
 	for rowID, row := range rows {
 		var tableRow av.TableRow
 		for _, col := range ret.Columns {
@@ -155,18 +155,18 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 			tableRow.ID = rowID
 
 			switch tableCell.ValueType {
-			case av.KeyTypeNumber: // 格式化数字
+			case av.KeyTypeNumber: // Format number
 				if nil != tableCell.Value && nil != tableCell.Value.Number && tableCell.Value.Number.IsNotEmpty {
 					tableCell.Value.Number.Format = col.NumberFormat
 					tableCell.Value.Number.FormatNumber()
 				}
-			case av.KeyTypeTemplate: // 渲染模板列
+			case av.KeyTypeTemplate: // Render template column
 				tableCell.Value = &av.Value{ID: tableCell.ID, KeyID: col.ID, BlockID: rowID, Type: av.KeyTypeTemplate, Template: &av.ValueTemplate{Content: col.Template}}
-			case av.KeyTypeCreated: // 填充创建时间列值，后面再渲染
+			case av.KeyTypeCreated: // Fill creation time column value, render later
 				tableCell.Value = &av.Value{ID: tableCell.ID, KeyID: col.ID, BlockID: rowID, Type: av.KeyTypeCreated}
-			case av.KeyTypeUpdated: // 填充更新时间列值，后面再渲染
+			case av.KeyTypeUpdated: // Fill update time column value, render later
 				tableCell.Value = &av.Value{ID: tableCell.ID, KeyID: col.ID, BlockID: rowID, Type: av.KeyTypeUpdated}
-			case av.KeyTypeRelation: // 清空关联列值，后面再渲染 https://ld246.com/article/1703831044435
+			case av.KeyTypeRelation: // Clear relation column value, render later https://ld246.com/article/1703831044435
 				if nil != tableCell.Value && nil != tableCell.Value.Relation {
 					tableCell.Value.Relation.Contents = nil
 				}
@@ -179,7 +179,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		ret.Rows = append(ret.Rows, &tableRow)
 	}
 
-	// 批量获取块属性以提升性能
+	// Batch retrieve block attributes to improve performance
 	var ialIDs []string
 	for _, row := range ret.Rows {
 		block := row.GetBlockValue()
@@ -189,13 +189,13 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 	}
 	ials := BatchGetBlockAttrs(ialIDs)
 
-	// 渲染自动生成的列值，比如关联列、汇总列、创建时间列和更新时间列
+	// Render auto-generated column values, such as relation columns, rollup columns, creation time columns and update time columns
 	avCache := map[string]*av.AttributeView{}
 	avCache[attrView.ID] = attrView
 	for _, row := range ret.Rows {
 		for _, cell := range row.Cells {
 			switch cell.ValueType {
-			case av.KeyTypeBlock: // 对于主键可能需要填充静态锚文本 Database-bound block primary key supports setting static anchor text https://github.com/siyuan-note/siyuan/issues/10049
+			case av.KeyTypeBlock: // For primary keys, may need to fill static anchor text Database-bound block primary key supports setting static anchor text https://github.com/siyuan-note/siyuan/issues/10049
 				if nil != cell.Value.Block {
 					for k, v := range ials[row.ID] {
 						if k == av.NodeAttrViewStaticText+"-"+attrView.ID {
@@ -204,7 +204,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 						}
 					}
 				}
-			case av.KeyTypeRollup: // 渲染汇总列
+			case av.KeyTypeRollup: // Render rollup column
 				rollupKey, _ := attrView.GetKey(cell.Value.KeyID)
 				if nil == rollupKey || nil == rollupKey.Rollup {
 					break
@@ -239,7 +239,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 				for _, blockID := range relVal.Relation.BlockIDs {
 					destVal := destAv.GetValue(rollupKey.Rollup.KeyID, blockID)
 					if nil == destVal {
-						if destAv.ExistBlock(blockID) { // 数据库中存在行但是列值不存在是数据未初始化，这里补一个默认值
+						if destAv.ExistBlock(blockID) { // Row exists in database but column value is not initialized, add default value here
 							destVal = av.GetAttributeViewDefaultValue(ast.NewNodeID(), rollupKey.Rollup.KeyID, blockID, destKey.Type)
 						}
 						if nil == destVal {
@@ -256,12 +256,12 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 
 				cell.Value.Rollup.RenderContents(rollupKey.Rollup.Calc, destKey)
 
-				// 将汇总列的值保存到 rows 中，后续渲染模板列的时候会用到，下同
+				// Save rollup column values to rows for later use when rendering template columns, same below
 				// Database table view template columns support reading relation, rollup, created and updated columns https://github.com/siyuan-note/siyuan/issues/10442
 				keyValues := rows[row.ID]
 				keyValues = append(keyValues, &av.KeyValues{Key: rollupKey, Values: []*av.Value{{ID: cell.Value.ID, KeyID: rollupKey.ID, BlockID: row.ID, Type: av.KeyTypeRollup, Rollup: cell.Value.Rollup}}})
 				rows[row.ID] = keyValues
-			case av.KeyTypeRelation: // 渲染关联列
+			case av.KeyTypeRelation: // Render relation column
 				relKey, _ := attrView.GetKey(cell.Value.KeyID)
 				if nil != relKey && nil != relKey.Relation {
 					destAv := avCache[relKey.Relation.AvID]
@@ -290,7 +290,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 				keyValues := rows[row.ID]
 				keyValues = append(keyValues, &av.KeyValues{Key: relKey, Values: []*av.Value{{ID: cell.Value.ID, KeyID: relKey.ID, BlockID: row.ID, Type: av.KeyTypeRelation, Relation: cell.Value.Relation}}})
 				rows[row.ID] = keyValues
-			case av.KeyTypeCreated: // 渲染创建时间
+			case av.KeyTypeCreated: // Render creation time
 				createdStr := row.ID[:len("20060102150405")]
 				created, parseErr := time.ParseInLocation("20060102150405", createdStr, time.Local)
 				if nil == parseErr {
@@ -304,7 +304,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 				createdKey, _ := attrView.GetKey(cell.Value.KeyID)
 				keyValues = append(keyValues, &av.KeyValues{Key: createdKey, Values: []*av.Value{{ID: cell.Value.ID, KeyID: createdKey.ID, BlockID: row.ID, Type: av.KeyTypeCreated, Created: cell.Value.Created}}})
 				rows[row.ID] = keyValues
-			case av.KeyTypeUpdated: // 渲染更新时间
+			case av.KeyTypeUpdated: // Render update time
 				ial := ials[row.ID]
 				if nil == ial {
 					ial = map[string]string{}
@@ -332,14 +332,14 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		}
 	}
 
-	// 最后单独渲染模板列，这样模板列就可以使用汇总、关联、创建时间和更新时间列的值了
+	// Finally render template columns separately, so they can use values from rollup, relation, creation time and update time columns
 	// Database table view template columns support reading relation, rollup, created and updated columns https://github.com/siyuan-note/siyuan/issues/10442
 
 	var renderTemplateErr error
 	for _, row := range ret.Rows {
 		for _, cell := range row.Cells {
 			switch cell.ValueType {
-			case av.KeyTypeTemplate: // 渲染模板列
+			case av.KeyTypeTemplate: // Render template column
 				keyValues := rows[row.ID]
 				ial := ials[row.ID]
 				if nil == ial {
@@ -362,14 +362,14 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		util.PushErrMsg(fmt.Sprintf(util.Langs[util.Lang][44], util.EscapeHTML(renderTemplateErr.Error())), 30000)
 	}
 
-	// 根据搜索条件过滤
+	// Filter by search conditions
 	query = strings.TrimSpace(query)
 	if "" != query {
-		// 将连续空格转换为一个空格
+		// Convert consecutive spaces to a single space
 		query = strings.Join(strings.Fields(query), " ")
-		// 按空格分割关键字
+		// Split keywords by space
 		keywords := strings.Split(query, " ")
-		// 使用 AND 逻辑 https://github.com/siyuan-note/siyuan/issues/11535
+		// Use AND logic https://github.com/siyuan-note/siyuan/issues/11535
 		var hitRows []*av.TableRow
 		for _, row := range ret.Rows {
 			hit := false
@@ -396,7 +396,7 @@ func RenderAttributeViewTable(attrView *av.AttributeView, view *av.View, query s
 		}
 	}
 
-	// 自定义排序
+	// Custom sorting
 	sortRowIDs := map[string]int{}
 	if 0 < len(view.Table.RowIDs) {
 		for i, rowID := range view.Table.RowIDs {
@@ -440,7 +440,7 @@ func RenderTemplateCol(ial map[string]string, rowValues []*av.KeyValues, tplCont
 	}
 
 	buf := &bytes.Buffer{}
-	dataModel := map[string]interface{}{} // 复制一份 IAL 以避免修改原始数据
+	dataModel := map[string]interface{}{} // Copy IAL to avoid modifying original data
 	for k, v := range ial {
 		dataModel[k] = v
 
@@ -457,11 +457,11 @@ func RenderTemplateCol(ial map[string]string, rowValues []*av.KeyValues, tplCont
 			//logging.LogWarnf("parse created [%s] failed: %s", createdStr, errMsg)
 			if strings.Contains(errMsg, "minute out of range") {
 				// parsing time "20240709158553": minute out of range
-				// 将分秒部分置为 0000
+				// Set minutes and seconds to 0000
 				createdStr = createdStr[:len("2006010215")] + "0000"
 			} else if strings.Contains(errMsg, "second out of range") {
 				// parsing time "20240709154592": second out of range
-				// 将秒部分置为 00
+				// Set seconds to 00
 				createdStr = createdStr[:len("200601021504")] + "00"
 			}
 			created, parseErr = time.ParseInLocation("20060102150405", createdStr, time.Local)

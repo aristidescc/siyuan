@@ -188,7 +188,7 @@ func nodeStaticContent(node *ast.Node, excludeTypes []string, includeTextMarkATi
 
 		switch n.Type {
 		case ast.NodeTableCell:
-			// 表格块写入数据库表时在单元格之间添加空格 https://github.com/siyuan-note/siyuan/issues/7654
+			// Add spaces between cells when writing table blocks to database https://github.com/siyuan-note/siyuan/issues/7654
 			if 0 < buf.Len() && ' ' != buf.Bytes()[buf.Len()-1] {
 				buf.WriteByte(' ')
 			}
@@ -230,7 +230,7 @@ func nodeStaticContent(node *ast.Node, excludeTypes []string, includeTextMarkATi
 		case ast.NodeText, ast.NodeCodeBlockCode, ast.NodeMathBlockContent, ast.NodeHTMLBlock:
 			tokens := n.Tokens
 			if treenode.IsChartCodeBlockCode(n) {
-				// 图表块的内容在数据库 `blocks` 表 `content` 字段中被转义 https://github.com/siyuan-note/siyuan/issues/6326
+				// Chart block content is escaped in the `content` field of the `blocks` table in database https://github.com/siyuan-note/siyuan/issues/6326
 				tokens = html.UnescapeHTML(tokens)
 			}
 			buf.Write(tokens)
@@ -251,7 +251,7 @@ func nodeStaticContent(node *ast.Node, excludeTypes []string, includeTextMarkATi
 				buf.WriteByte('#')
 			}
 			if n.IsTextMarkType("a") && includeTextMarkATitleURL {
-				// 搜索不到超链接元素的 URL 和标题 https://github.com/siyuan-note/siyuan/issues/7352
+				// Cannot search for hyperlink element URLs and titles https://github.com/siyuan-note/siyuan/issues/7352
 				if "" != n.TextMarkATitle {
 					buf.WriteString(" " + util.UnescapeHTML(n.TextMarkATitle))
 				}
@@ -271,7 +271,7 @@ func nodeStaticContent(node *ast.Node, excludeTypes []string, includeTextMarkATi
 		return ast.WalkContinue
 	})
 
-	// 这里不要 trim，否则无法搜索首尾空格
+	// Do not trim here, otherwise leading/trailing spaces cannot be searched
 	// Improve search and replace for spaces https://github.com/siyuan-note/siyuan/issues/10231
 	return buf.String()
 }

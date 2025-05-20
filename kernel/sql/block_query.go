@@ -380,13 +380,13 @@ func QueryNoLimit(stmt string) (ret []map[string]interface{}, err error) {
 
 func Query(stmt string, limit int) (ret []map[string]interface{}, err error) {
 	// Kernel API `/api/query/sql` support `||` operator https://github.com/siyuan-note/siyuan/issues/9662
-	// 这里为了支持 || 操作符，使用了另一个 sql 解析器，但是这个解析器无法处理 UNION https://github.com/siyuan-note/siyuan/issues/8226
-	// 考虑到 UNION 的使用场景不多，这里还是以支持 || 操作符为主
+	// To support the || operator, we use another SQL parser, but this parser cannot handle UNION https://github.com/siyuan-note/siyuan/issues/8226
+	// Given that UNION is less commonly used, priority is given to supporting the || operator
 	p := sqlparser2.NewParser(strings.NewReader(stmt))
 	parsedStmt2, err := p.ParseStatement()
 	if err != nil {
 		if !strings.Contains(stmt, "||") {
-			// 这个解析器无法处理 || 连接字符串操作符
+			// This parser cannot handle the || string concatenation operator
 			parsedStmt, err2 := sqlparser.Parse(stmt)
 			if nil != err2 {
 				return queryRawStmt(stmt, limit)
